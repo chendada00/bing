@@ -1,0 +1,42 @@
+name: 构建前端并发布
+
+on:
+  push:
+    tags:
+      - 'v*' # 当推送版本标签时触发 (例如 v1.0.0)
+
+jobs:
+  构建发布:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置 Node.js 环境
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: 安装 pnpm
+      run: npm install -g pnpm
+      
+    - name: 安装前端依赖
+      working-directory: ./client
+      run: pnpm install
+      
+    - name: 构建前端
+      working-directory: ./client
+      run: pnpm build
+      
+    - name: 压缩构建结果
+      run: tar -zcvf frontend-dist.tar.gz -C client/dist .
+      
+    - name: 创建发布版本
+      uses: softprops/action-gh-release@v1
+      with:
+        files: frontend-dist.tar.gz
+        tag_name: ${{ github.ref_name }}
+        name: 前端构建 ${{ github.ref_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
