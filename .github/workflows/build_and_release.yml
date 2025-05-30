@@ -1,9 +1,9 @@
-name: 构建前端并发布
+name: Build Frontend and Upload to Release
 
 on:
   push:
     tags:
-      - 'v*' # 当推送版本标签时触发 (例如 v1.0.0)
+      - 'v*'   # 仅在打 tag 时触发，如 v1.0.0
   workflow_dispatch:  # 添加这行以支持手动触发
     inputs:
       version:
@@ -47,5 +47,3 @@ jobs:
           files: client/dist.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
