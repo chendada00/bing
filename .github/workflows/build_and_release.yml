@@ -9,41 +9,43 @@ on:
       version:
         description: '输入版本号（如 v1.0.0）'
         required: true
-
 jobs:
-  build_and_release:
+  build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 检出代码
-      uses: actions/checkout@v4
-      
-    - name: 设置 Node.js 环境
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        
-    - name: 安装 pnpm
-      run: npm install -g pnpm
-      
-    - name: 安装前端依赖
-      working-directory: ./client
-      run: pnpm install
-      
-    - name: 构建前端
-      working-directory: ./client
-      env:
-        NODE_OPTIONS: --experimental-vm-modules
-      run: pnpm build
-      
-    - name: 压缩构建结果
-      run: tar -zcvf frontend-dist.tar.gz -C client/dist .
-      
-    - name: 创建发布版本
-      uses: softprops/action-gh-release@v1
-      with:
-        files: frontend-dist.tar.gz
-        tag_name: ${{ github.ref_name }}
-        name: 前端构建 ${{ github.ref_name }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        working-directory: ./client
+        run: pnpm install
+
+      - name: Build frontend
+        working-directory: ./client
+        run: pnpm build
+
+      - name: Archive dist folder
+        run: |
+          cd client
+          zip -r dist.zip dist
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: client/dist.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
